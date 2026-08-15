@@ -1,0 +1,7 @@
+{
+  "name": "Al-Hafiz: Quran Memorization & Recitation",
+  "description": "A modern Quran application for reading, listening, and memorizing with real-time AI-powered Tajwid and Hifz validation.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
