@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { Type } from '@google/genai';
 import React, { useState, useRef } from 'react';
 import { Ayah, QuranVersion } from '../types';
 import AyahDisplay from './AyahDisplay';
@@ -155,71 +155,82 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
     setIsAnalyzing(true);
     try {
       const base64Audio = await blobToBase64(audioBlob);
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      
       const targetLangName = lang === 'ar' ? 'العربية' : lang === 'en' ? 'English' : 'Français';
       const systemInstruction = `
         أنت خبير في مراجعة حفظ القرآن الكريم والتجويد.
         الرواية: ${riwaya}.
         الآية المتوقعة: "${ayah.text}".
         
-        القواعد الصarمة:
+        القواعد الصارمة:
         1. قارن التلاوة الصوتية بالنص العربي الأصلي.
         2. يجب أن تكون جميع الردود النصية وتفسيرات الأخطاء وأحكام التجويد (التي تشمل حقول: issue, check, why, max_2_fixes, don_t_overcorrect_notes) مكتوبة باللغة المحددة فقط وهي: ${targetLangName}. لا تخلط اللغات ولا تضع ترجمات متعددة.
         3. ركز على مخارج الحروف وأحكام التجويد (مثل الغنة، الإخفاء، القلقلة).
         4. الرد يجب أن يكون بتنسيق JSON حصراً.
       `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-lite',
-        contents: [{ 
-          parts: [
-            { text: systemInstruction }, 
-            { inlineData: { mimeType: 'audio/webm', data: base64Audio } }
-          ] 
-        }],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              verdict: { type: Type.STRING, description: 'CORRECT, INCORRECT, or NEEDS_REVIEW' },
-              confidence: { type: Type.NUMBER },
-              word_by_word: { 
-                type: Type.ARRAY, 
-                items: { 
+      const apiKey = process.env.API_KEY;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{ 
+            parts: [
+              { text: systemInstruction }, 
+              { inlineData: { mimeType: 'audio/webm', data: base64Audio } }
+            ] 
+          }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                verdict: { type: Type.STRING, description: 'CORRECT, INCORRECT, or NEEDS_REVIEW' },
+                confidence: { type: Type.NUMBER },
+                word_by_word: { 
+                  type: Type.ARRAY, 
+                  items: { 
+                    type: Type.OBJECT, 
+                    properties: { 
+                      word_ref: { type: Type.STRING, description: 'الكلمة من الآية' }, 
+                      status: { type: Type.STRING }, 
+                      issue: { type: Type.STRING, description: `وصف الخطأ باللغة ${targetLangName}` } 
+                    } 
+                  } 
+                },
+                tajweed_checks: { 
+                  type: Type.ARRAY, 
+                  items: { 
+                    type: Type.OBJECT, 
+                    properties: { 
+                      check: { type: Type.STRING, description: `اسم الحكم باللغة ${targetLangName}` }, 
+                      status: { type: Type.STRING }, 
+                      why: { type: Type.STRING, description: `الشرح باللغة ${targetLangName}` } 
+                    } 
+                  } 
+                },
+                final_feedback: { 
                   type: Type.OBJECT, 
                   properties: { 
-                    word_ref: { type: Type.STRING, description: 'الكلمة من الآية' }, 
-                    status: { type: Type.STRING }, 
-                    issue: { type: Type.STRING, description: `وصف الخطأ باللغة ${targetLangName}` } 
+                    max_2_fixes: { type: Type.ARRAY, items: { type: Type.STRING }, description: `نصائح باللغة ${targetLangName}` },
+                    don_t_overcorrect_notes: { type: Type.ARRAY, items: { type: Type.STRING } } 
                   } 
-                } 
-              },
-              tajweed_checks: { 
-                type: Type.ARRAY, 
-                items: { 
-                  type: Type.OBJECT, 
-                  properties: { 
-                    check: { type: Type.STRING, description: `اسم الحكم باللغة ${targetLangName}` }, 
-                    status: { type: Type.STRING }, 
-                    why: { type: Type.STRING, description: `الشرح باللغة ${targetLangName}` } 
-                  } 
-                } 
-              },
-              final_feedback: { 
-                type: Type.OBJECT, 
-                properties: { 
-                  max_2_fixes: { type: Type.ARRAY, items: { type: Type.STRING }, description: `نصائح باللغة ${targetLangName}` },
-                  don_t_overcorrect_notes: { type: Type.ARRAY, items: { type: Type.STRING } } 
-                } 
+                }
               }
             }
           }
-        }
+        })
       });
 
-      const jsonStr = response.text?.trim();
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const resJson = await res.json();
+      const jsonStr = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
       const parsedReport = JSON.parse(jsonStr || '{}') as StrictReport;
       setReport(parsedReport);
       
