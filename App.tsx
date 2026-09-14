@@ -20,7 +20,20 @@ const App: React.FC = () => {
   const [masteredCount, setMasteredCount] = useState(0);
   const [isExploringAll, setIsExploringAll] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState<number[]>([]);
-  const [showLanding, setShowLanding] = useState(true);
+  const [showLanding, setShowLanding] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('landing') === 'true') return true;
+      if (params.get('app') === 'true') return false;
+      const visited = localStorage.getItem('alhafiz_visited') === 'true';
+      const hasHistory = localStorage.getItem('alhafiz_last_pos') !== null || 
+        (JSON.parse(localStorage.getItem('alhafiz_bookmarks') || '[]')).length > 0 ||
+        (JSON.parse(localStorage.getItem('alhafiz_mastered') || '[]')).length > 0;
+      return !(visited || hasHistory);
+    } catch {
+      return true;
+    }
+  });
   const [surahPositions, setSurahPositions] = useState<Record<number, number>>({});
   const [lang, setLang] = useState<'fr' | 'ar' | 'en'>(() => {
     return (localStorage.getItem('alhafiz_lang') as 'fr' | 'ar' | 'en') || 'fr';

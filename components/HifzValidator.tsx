@@ -40,6 +40,7 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [report, setReport] = useState<StrictReport | null>(null);
+  const [selectedWordIdx, setSelectedWordIdx] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -55,12 +56,15 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
       pressToAnalyze: "Appuyez pour analyser",
       analyzing: "Analyse en cours...",
       touchToRecite: "Touchez pour réciter",
+      reciteAgain: "Réciter à nouveau",
       correctVerdict: "CORRECT / ممتاز",
       revisionVerdict: "RÉVISION / تحتاج مراجعة",
       precision: "PRÉCISION",
       wordAnalysis: "Analyse des mots / تحليل الكلمات",
       tajweedTitle: "Tajwid / أحكام التجويد",
-      feedbackTitle: "Conseils / نصائح الحفظ والتجويد"
+      feedbackTitle: "Conseils / نصائح الحفظ والتجويد",
+      tapWordForDetails: "Touchez un mot coloré pour voir l'explication",
+      closeDetails: "Fermer l'explication"
     },
     ar: {
       iaExaminer: "المصحح الذكي",
@@ -70,12 +74,15 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
       pressToAnalyze: "اضغط لتحليل التلاوة",
       analyzing: "جاري التحليل...",
       touchToRecite: "اضغط هنا لبدء التلاوة",
+      reciteAgain: "إعادة التلاوة",
       correctVerdict: "ممتاز / CORRECT",
       revisionVerdict: "تحتاج مراجعة / RÉVISION",
       precision: "الدقة",
       wordAnalysis: "تحليل الكلمات / Analyse des mots",
       tajweedTitle: "أحكام التجويد / Tajwid",
-      feedbackTitle: "نصائح الحفظ والتجويد / Conseils"
+      feedbackTitle: "نصائح الحفظ والتجويد / Conseils",
+      tapWordForDetails: "اضغط على الكلمة الملونة للاطلاع على تفاصيل الخطأ",
+      closeDetails: "إغلاق التفاصيل"
     },
     en: {
       iaExaminer: "AI Examiner",
@@ -85,12 +92,15 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
       pressToAnalyze: "Press to analyze",
       analyzing: "Analyzing...",
       touchToRecite: "Touch to recite",
+      reciteAgain: "Recite again",
       correctVerdict: "CORRECT / ممتاز",
       revisionVerdict: "REVISION / تحتاج مراجعة",
       precision: "PRECISION",
       wordAnalysis: "Word Analysis",
       tajweedTitle: "Tajwid Rules",
-      feedbackTitle: "Advice & Tips"
+      feedbackTitle: "Advice & Tips",
+      tapWordForDetails: "Tap a highlighted word to view error details",
+      closeDetails: "Close details"
     }
   };
 
@@ -100,6 +110,7 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
     try {
       setError(null);
       setReport(null);
+      setSelectedWordIdx(null);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -275,22 +286,100 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-2xl mx-auto">
-      <div className="bg-white rounded-[2.5rem] p-8 sm:p-12 border border-[#eee8d5] shadow-lg text-center space-y-8">
-        <div className="space-y-2">
+      <div className="bg-white rounded-[2.5rem] p-6 sm:p-10 border border-[#eee8d5] shadow-lg text-center space-y-6">
+        <div className="space-y-1">
           <h2 className="text-2xl font-black text-[#073642]">{t.iaExaminer}</h2>
           <p className="text-[10px] text-[#93a1a1] font-black uppercase tracking-[0.4em]">{t.subTitle}</p>
         </div>
 
-        <div className="bg-[#fdf6e3] rounded-[2rem] p-10 border border-[#eee8d5] shadow-inner flex justify-center items-center">
-          <AyahDisplay ayah={ayah} surahNumber={surahNumber} useImageOnly={useImageOnly} fontSize={fontSize} />
+        {/* Verse Display Area (Directly annotated with words if report exists) */}
+        <div className="bg-[#fdf6e3] rounded-[2rem] p-6 sm:p-8 border border-[#eee8d5] shadow-inner flex flex-col justify-center items-center min-h-[140px] relative transition-all">
+          {!report ? (
+            <AyahDisplay ayah={ayah} surahNumber={surahNumber} useImageOnly={useImageOnly} fontSize={fontSize} />
+          ) : (
+            <div className="w-full space-y-5 animate-in fade-in duration-300">
+              {/* Verdict header banner */}
+              <div className={`w-full py-2.5 px-4 rounded-xl flex items-center justify-between text-xs font-black tracking-wider uppercase shadow-sm ${getVerdictColor(report.verdict)}`}>
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                  {report.verdict === 'CORRECT' ? t.correctVerdict : t.revisionVerdict}
+                </span>
+                <span>{t.precision}: {(report.confidence * 100).toFixed(0)}%</span>
+              </div>
+
+              {/* Interactive Ayah Words */}
+              <div 
+                dir="rtl" 
+                className="flex flex-wrap gap-x-2.5 gap-y-3 justify-center items-center py-2"
+              >
+                {report.word_by_word.map((item, idx) => {
+                  const isSelected = selectedWordIdx === idx;
+                  const isWrong = item.status === 'WRONG';
+                  const isUncertain = item.status === 'UNCERTAIN';
+                  const isOk = item.status === 'OK';
+
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedWordIdx(isSelected ? null : idx)}
+                      className={`
+                        group relative px-3 py-1 rounded-2xl transition-all duration-200 active:scale-95 flex flex-col items-center cursor-pointer
+                        ${isOk ? 'bg-[#859900]/10 hover:bg-[#859900]/20 text-[#859900] border border-[#859900]/30' : ''}
+                        ${isUncertain ? 'bg-[#b58900]/15 hover:bg-[#b58900]/25 text-[#b58900] border-2 border-dashed border-[#b58900] shadow-sm' : ''}
+                        ${isWrong ? 'bg-[#dc322f]/15 hover:bg-[#dc322f]/25 text-[#dc322f] border-2 border-[#dc322f] shadow-sm' : ''}
+                        ${isSelected ? 'ring-4 ring-[#b58900]/40 scale-105 shadow-md' : ''}
+                      `}
+                    >
+                      <span className="lateef-font text-3xl sm:text-4xl font-bold leading-normal">
+                        {item.word_ref}
+                      </span>
+                      <span className={`w-1.5 h-1.5 rounded-full mt-0.5 ${isOk ? 'bg-[#859900]' : isUncertain ? 'bg-[#b58900]' : 'bg-[#dc322f]'}`}></span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Selected Word Details Card (Popover) */}
+              {selectedWordIdx !== null && report.word_by_word[selectedWordIdx] && (
+                <div className="bg-white rounded-2xl p-4 border border-[#eee8d5] shadow-xl animate-in zoom-in-95 duration-200 text-center space-y-2 max-w-md mx-auto">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-[#93a1a1] pb-1 border-b border-[#eee8d5]">
+                    <span>{t.wordAnalysis}</span>
+                    <button 
+                      type="button"
+                      onClick={() => setSelectedWordIdx(null)}
+                      className="text-[#dc322f] hover:underline cursor-pointer"
+                    >
+                      {t.closeDetails} ✕
+                    </button>
+                  </div>
+                  <div className="lateef-font text-3xl text-[#073642] font-bold">
+                    {report.word_by_word[selectedWordIdx].word_ref}
+                  </div>
+                  <div className="text-xs font-semibold text-[#586e75]">
+                    {report.word_by_word[selectedWordIdx].issue ? (
+                      renderBilingualText(report.word_by_word[selectedWordIdx].issue)
+                    ) : (
+                      <span className="text-[#859900] font-bold">✓ Prononciation et mémorisation conformes</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[10px] text-[#93a1a1] font-black uppercase tracking-wider text-center">
+                {t.tapWordForDetails}
+              </p>
+            </div>
+          )}
         </div>
 
-        <div className="flex flex-col items-center gap-6">
+        {/* Recording Controls */}
+        <div className="flex flex-col items-center gap-4">
           <button
             onClick={isRecording ? stopRecording : startRecording}
             disabled={isAnalyzing}
             className={`
-              relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center transition-all shadow-xl active:scale-95
+              relative w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center transition-all shadow-xl active:scale-95
               ${isRecording 
                 ? 'bg-[#dc322f] animate-pulse ring-[12px] ring-[#dc322f]/10' 
                 : 'bg-[#073642] hover:bg-[#002b36] shadow-[#073642]/20'
@@ -299,97 +388,70 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
             `}
           >
             {isAnalyzing ? (
-              <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <div className="w-8 h-8 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
             ) : isRecording ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
                 <rect x="6" y="6" width="8" height="8" rx="1.5" />
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
             )}
           </button>
           
-          <div className="space-y-1">
-            <p className="text-[12px] font-black text-[#b58900] uppercase tracking-[0.3em]">
-              {isRecording ? t.pressToAnalyze : isAnalyzing ? t.analyzing : t.touchToRecite}
+          <div className="space-y-0.5">
+            <p className="text-[11px] font-black text-[#b58900] uppercase tracking-[0.25em]">
+              {isRecording ? t.pressToAnalyze : isAnalyzing ? t.analyzing : report ? t.reciteAgain : t.touchToRecite}
             </p>
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="bg-[#dc322f]/5 border border-[#dc322f]/20 text-[#dc322f] p-5 rounded-[1.5rem] text-[11px] font-bold flex items-center gap-4 animate-in shake">
+        <div className="bg-[#dc322f]/5 border border-[#dc322f]/20 text-[#dc322f] p-4 rounded-[1.5rem] text-[11px] font-bold flex items-center gap-3 animate-in shake">
           {error}
         </div>
       )}
 
+      {/* Tajweed checks and Advice Cards */}
       {report && (
-        <div className="space-y-6 animate-in slide-in-from-bottom-8 duration-700">
-          <div className="bg-white rounded-[2.5rem] overflow-hidden border border-[#eee8d5] shadow-2xl">
-            <div className={`p-6 flex items-center justify-between ${getVerdictColor(report.verdict)}`}>
-              <div className="flex items-center gap-3">
-                 <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
-                 <span className="text-xs font-black tracking-[0.3em] uppercase">
-                    {report.verdict === 'CORRECT' ? t.correctVerdict : t.revisionVerdict}
-                 </span>
-              </div>
-              <span className="text-[10px] opacity-90 font-black tracking-widest">{t.precision}: {(report.confidence * 100).toFixed(0)}%</span>
-            </div>
-
-            <div className="p-8 sm:p-10 space-y-10">
-              <div className="space-y-4">
-                <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] text-[#93a1a1] ${isRtl ? 'text-right' : 'text-left'}`}>{t.wordAnalysis}</h3>
-                <div className={`flex flex-wrap gap-6 justify-start ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}>
-                  {report.word_by_word.map((item, idx) => (
-                    <div key={idx} className="flex flex-col items-center gap-2 group">
-                      <span className={`lateef-font text-4xl ${getStatusColor(item.status)} group-hover:scale-110 transition-transform`}>
-                        {item.word_ref}
-                      </span>
-                      {item.issue && (
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity text-center max-w-[100px]">
-                           {renderBilingualText(item.issue)}
+        <div className="space-y-5 animate-in slide-in-from-bottom-6 duration-500">
+          <div className="bg-white rounded-[2rem] p-6 sm:p-8 border border-[#eee8d5] shadow-lg space-y-6">
+            {report.tajweed_checks && report.tajweed_checks.length > 0 && (
+              <div className="space-y-3">
+                <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] text-[#93a1a1] ${isRtl ? 'text-right' : 'text-left'}`}>{t.tajweedTitle}</h3>
+                <div className="space-y-2.5" dir={isRtl ? 'rtl' : 'ltr'}>
+                  {report.tajweed_checks.map((check, idx) => (
+                    <div key={idx} className={`flex items-start gap-3 p-4 bg-[#fdf6e3]/60 rounded-2xl border border-[#eee8d5] ${isRtl ? 'text-right' : 'text-left'}`}>
+                      <div className={`mt-1.5 h-2.5 w-2.5 rounded-full shrink-0 ${check.status === 'PASSED' ? 'bg-[#859900]' : 'bg-[#dc322f]'}`} />
+                      <div className={`flex-1 ${isRtl ? 'text-right' : 'text-left'}`}>
+                        {renderBilingualText(check.check, true)}
+                        <div className="mt-1 opacity-80 text-xs">
+                          {renderBilingualText(check.why)}
                         </div>
-                      )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
+            )}
 
-              <div className="grid grid-cols-1 gap-8">
-                <div className="space-y-4">
-                   <h3 className={`text-[10px] font-black uppercase tracking-[0.3em] text-[#93a1a1] ${isRtl ? 'text-right' : 'text-left'}`}>{t.tajweedTitle}</h3>
-                   <div className="space-y-3" dir={isRtl ? 'rtl' : 'ltr'}>
-                     {report.tajweed_checks.map((check, idx) => (
-                       <div key={idx} className={`flex items-start gap-4 p-5 bg-[#fdf6e3]/50 rounded-[1.5rem] border border-[#eee8d5] ${isRtl ? 'text-right' : 'text-left'}`}>
-                         <div className={`mt-2 h-3 w-3 rounded-full shrink-0 ${check.status === 'PASSED' ? 'bg-[#859900]' : 'bg-[#dc322f]'}`} />
-                         <div className={`flex-1 ${isRtl ? 'text-right' : 'text-left'}`}>
-                           {renderBilingualText(check.check, true)}
-                           <div className="mt-2 opacity-80">
-                             {renderBilingualText(check.why)}
-                           </div>
-                         </div>
-                       </div>
-                     ))}
-                   </div>
+            {report.final_feedback?.max_2_fixes && report.final_feedback.max_2_fixes.length > 0 && (
+              <div className="bg-[#859900] text-white rounded-2xl p-6 space-y-4 shadow-md shadow-[#859900]/15" dir={isRtl ? 'rtl' : 'ltr'}>
+                <div className={`flex items-center gap-2.5 ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}>
+                  <svg className={`w-5 h-5 ${isRtl ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <h3 className="lateef-font text-2xl font-bold">{t.feedbackTitle}</h3>
                 </div>
-
-                <div className="bg-[#859900] text-white rounded-[2rem] p-8 space-y-6 shadow-xl shadow-[#859900]/10" dir={isRtl ? 'rtl' : 'ltr'}>
-                   <div className={`flex items-center gap-3 ${isRtl ? 'flex-row' : 'flex-row-reverse'}`}>
-                      <svg className={`w-5 h-5 ${isRtl ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      <h3 className="lateef-font text-2xl font-bold">{t.feedbackTitle}</h3>
-                   </div>
-                   <div className="space-y-4">
-                     {report.final_feedback.max_2_fixes.map((fix, idx) => (
-                       <div key={idx} className={`bg-white/10 p-5 rounded-2xl ${isRtl ? 'text-right' : 'text-left'}`}>
-                         {renderBilingualText(fix.replace(' / ', ' / ').includes(' / ') ? fix : `${fix} / Conseil`)}
-                       </div>
-                     ))}
-                   </div>
+                <div className="space-y-2.5">
+                  {report.final_feedback.max_2_fixes.map((fix, idx) => (
+                    <div key={idx} className={`bg-white/10 p-3.5 rounded-xl text-xs font-semibold ${isRtl ? 'text-right' : 'text-left'}`}>
+                      {renderBilingualText(fix.includes(' / ') ? fix : `${fix} / Conseil`)}
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
