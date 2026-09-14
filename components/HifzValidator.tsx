@@ -180,64 +180,85 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
       `;
 
       const apiKey = process.env.API_KEY;
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
-
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{ 
-            parts: [
-              { text: systemInstruction }, 
-              { inlineData: { mimeType: 'audio/webm', data: base64Audio } }
-            ] 
-          }],
-          generationConfig: {
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                verdict: { type: Type.STRING, description: 'CORRECT, INCORRECT, or NEEDS_REVIEW' },
-                confidence: { type: Type.NUMBER },
-                word_by_word: { 
-                  type: Type.ARRAY, 
-                  items: { 
-                    type: Type.OBJECT, 
-                    properties: { 
-                      word_ref: { type: Type.STRING, description: 'الكلمة من الآية' }, 
-                      status: { type: Type.STRING }, 
-                      issue: { type: Type.STRING, description: `وصف الخطأ باللغة ${targetLangName}` } 
-                    } 
-                  } 
-                },
-                tajweed_checks: { 
-                  type: Type.ARRAY, 
-                  items: { 
-                    type: Type.OBJECT, 
-                    properties: { 
-                      check: { type: Type.STRING, description: `اسم الحكم باللغة ${targetLangName}` }, 
-                      status: { type: Type.STRING }, 
-                      why: { type: Type.STRING, description: `الشرح باللغة ${targetLangName}` } 
-                    } 
-                  } 
-                },
-                final_feedback: { 
+      const payload = {
+        contents: [{ 
+          parts: [
+            { text: systemInstruction }, 
+            { inlineData: { mimeType: 'audio/webm', data: base64Audio } }
+          ] 
+        }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              verdict: { type: Type.STRING, description: 'CORRECT, INCORRECT, or NEEDS_REVIEW' },
+              confidence: { type: Type.NUMBER },
+              word_by_word: { 
+                type: Type.ARRAY, 
+                items: { 
                   type: Type.OBJECT, 
                   properties: { 
-                    max_2_fixes: { type: Type.ARRAY, items: { type: Type.STRING }, description: `نصائح باللغة ${targetLangName}` },
-                    don_t_overcorrect_notes: { type: Type.ARRAY, items: { type: Type.STRING } } 
+                    word_ref: { type: Type.STRING, description: 'الكلمة من الآية' }, 
+                    status: { type: Type.STRING }, 
+                    issue: { type: Type.STRING, description: `وصف الخطأ باللغة ${targetLangName}` } 
                   } 
-                }
+                } 
+              },
+              tajweed_checks: { 
+                type: Type.ARRAY, 
+                items: { 
+                  type: Type.OBJECT, 
+                  properties: { 
+                    check: { type: Type.STRING, description: `اسم الحكم باللغة ${targetLangName}` }, 
+                    status: { type: Type.STRING }, 
+                    why: { type: Type.STRING, description: `الشرح باللغة ${targetLangName}` } 
+                  } 
+                } 
+              },
+              final_feedback: { 
+                type: Type.OBJECT, 
+                properties: { 
+                  max_2_fixes: { type: Type.ARRAY, items: { type: Type.STRING }, description: `نصائح باللغة ${targetLangName}` },
+                  don_t_overcorrect_notes: { type: Type.ARRAY, items: { type: Type.STRING } } 
+                } 
               }
             }
           }
-        })
-      });
+        }
+      };
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+      const payloadStr = JSON.stringify(payload);
+      const modelsToTry = ['gemini-2.5-flash', 'gemini-3.5-flash-lite', 'gemini-2.0-flash'];
+      let res: Response | null = null;
+      let lastErrMsg = '';
+
+      for (const model of modelsToTry) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          const attempt = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: payloadStr
+          });
+
+          if (attempt.ok) {
+            res = attempt;
+            break;
+          } else {
+            const errData = await attempt.json().catch(() => null);
+            lastErrMsg = errData?.error?.message || `HTTP ${attempt.status}`;
+            console.warn(`Gemini model ${model} response ${attempt.status}:`, lastErrMsg);
+          }
+        } catch (netErr: any) {
+          lastErrMsg = netErr.message;
+        }
+      }
+
+      if (!res) {
+        throw new Error(lastErrMsg || "Échec de connexion à l'IA");
       }
 
       const resJson = await res.json();
@@ -249,7 +270,7 @@ const HifzValidator: React.FC<HifzValidatorProps> = ({ ayah, surahName, riwaya, 
         saveMastery();
       }
     } catch (err: any) {
-      console.error(err);
+      console.error('Erreur HifzValidator:', err);
       setError(t.connError);
     } finally {
       setIsAnalyzing(false);
