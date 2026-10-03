@@ -30,7 +30,7 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
   const [jumpInput, setJumpInput] = useState('');
   const [mode, setMode] = useState<AppMode>('read');
   const [memorizeTarget, setMemorizeTarget] = useState<Ayah | null>(null);
-  const [useImages, setUseImages] = useState(true);
+  const [useImages, setUseImages] = useState(false);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(JSON.parse(localStorage.getItem('alhafiz_bookmarks') || '[]'));
   const [fontSize, setFontSize] = useState<number>(savedSettings.fontSize || 36);
   const [masteredVerses, setMasteredVerses] = useState<string[]>([]);
@@ -278,12 +278,23 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-[#fdf6e3] rounded-2xl border border-[#eee8d5] w-fit">
-            <div className="w-2 h-2 rounded-full bg-[#859900] animate-pulse"></div>
-            <span className="text-[10px] font-black text-[#586e75] uppercase tracking-wider">
-              {lang === 'ar' ? 'مصحف المدينة (صور أصلية معتمدة)' : 'Mushaf de Médine (Images Certifiées)'}
+          <button 
+            onClick={() => setUseImages(!useImages)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border transition-all active:scale-95 shadow-sm w-fit ${
+              !useImages 
+                ? 'bg-[#073642] text-white border-[#073642]' 
+                : 'bg-[#fdf6e3] text-[#586e75] border-[#eee8d5] hover:border-[#b58900]/40'
+            }`}
+            title="Basculer entre Texte HD et Scans originaux"
+          >
+            <div className={`w-2 h-2 rounded-full ${!useImages ? 'bg-[#859900]' : 'bg-[#b58900] animate-pulse'}`}></div>
+            <span className="text-[10px] font-black uppercase tracking-wider">
+              {!useImages 
+                ? (lang === 'ar' ? 'نص عثماني معتمد (وضوح فائق)' : 'Texte Uthmani Certifié (HD)')
+                : (lang === 'ar' ? 'مصحف المدينة (صور أصلية)' : 'Planches Mushaf (Images)')
+              }
             </span>
-          </div>
+          </button>
           <div className={`flex items-center justify-start md:justify-end gap-4 border-t md:border-t-0 border-[#eee8d5] pt-4 md:pt-0 ${isRtl ? 'md:border-r md:pr-6' : 'md:border-l md:pl-6'}`}>
             <span className="text-[9px] font-black text-[#93a1a1] uppercase tracking-[0.2em]">{t.fontSizeLabel}</span>
             <div className="flex items-center gap-1.5 bg-[#fdf6e3] p-1 rounded-full border border-[#eee8d5]">
