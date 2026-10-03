@@ -5,7 +5,7 @@ import { Reciter } from './types';
 export const RECITERS: Reciter[] = [
   // Hafs
   { id: 'Husary_Muallim_128kbps', name: 'Mahmoud Khalil Al-Hussary (Muallim)', version: 'Hafs' },
-  { id: 'Hussary_128kbps', name: 'Mahmoud Khalil Al-Hussary', version: 'Hafs' },
+  { id: 'Husary_128kbps', name: 'Mahmoud Khalil Al-Hussary', version: 'Hafs' },
   { id: 'mahmoud_ali_al_banna_32kbps', name: 'Mahmoud Ali Al-Banna', version: 'Hafs' },
   { id: 'Alafasy_128kbps', name: 'Mishary Rashid Alafasy', version: 'Hafs' },
   { id: 'Abdul_Basit_Murattal_192kbps', name: 'Abdul Basit Murattal', version: 'Hafs' },
