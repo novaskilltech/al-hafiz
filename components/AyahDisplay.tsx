@@ -10,50 +10,42 @@ interface AyahDisplayProps {
   fontSize?: number;
 }
 
-const AyahDisplay: React.FC<AyahDisplayProps> = ({ ayah, surahNumber, useImageOnly, fontSize = 36 }) => {
+const AyahDisplay: React.FC<AyahDisplayProps> = ({ ayah, surahNumber, useImageOnly = true, fontSize = 36 }) => {
   const [imgError, setImgError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const imageUrl = getAyahGifUrl(surahNumber, ayah.numberInSurah);
 
-  // Si on force l'image ou si le texte est vide (échec API), on affiche l'image de calligraphie
-  if (useImageOnly || !ayah.text) {
-    return (
-      <div className="flex flex-col items-end py-4 min-h-[60px] relative">
-        {isLoading && !imgError && (
-          <div className="absolute inset-0 flex items-center justify-end pr-8">
-            <div className="w-5 h-5 border-2 border-[#b58900]/20 border-t-[#b58900] rounded-full animate-spin"></div>
-          </div>
-        )}
-        
+  return (
+    <div className="flex flex-col items-end justify-center py-2 sm:py-4 min-h-[70px] w-full relative">
+      {isLoading && !imgError && (
+        <div className="w-full flex items-center justify-end py-6 pr-6">
+          <div className="w-6 h-6 border-2 border-[#b58900]/20 border-t-[#b58900] rounded-full animate-spin"></div>
+        </div>
+      )}
+      
+      {!imgError ? (
         <img 
           src={imageUrl} 
-          alt={`Ayah ${ayah.numberInSurah}`}
-          className={`w-auto object-contain mix-blend-multiply transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-          style={{ height: `${fontSize * 2.5}px`, maxHeight: '180px' }}
+          alt={`Sourate ${surahNumber}, Verset ${ayah.numberInSurah}`}
+          className={`w-auto max-w-full object-contain mix-blend-multiply transition-opacity duration-300 ${isLoading ? 'opacity-0 h-0' : 'opacity-100'}`}
+          style={{ height: `${Math.max(fontSize * 2.4, 60)}px`, maxHeight: '220px' }}
           onLoad={() => setIsLoading(false)}
           onError={() => {
             setImgError(true);
             setIsLoading(false);
           }}
         />
-        
-        {imgError && (
-          <div className="text-right">
-            <p className="text-[10px] font-black text-[#dc322f] uppercase tracking-widest">Image indisponible</p>
-            {ayah.text && <p className="lateef-font text-2xl mt-2">{ayah.text}</p>}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <p 
-      className="lateef-font text-right text-slate-800 leading-loose"
-      style={{ fontSize: `${fontSize}px` }}
-    >
-      {ayah.text}
-    </p>
+      ) : (
+        <div className="w-full text-right p-4 bg-[#fdf6e3] rounded-2xl border border-[#eee8d5]">
+          <p className="text-[10px] font-black text-[#dc322f] uppercase tracking-widest mb-1">Calligraphie en cours de synchronisation</p>
+          {ayah.text && (
+            <p className="lateef-font text-3xl text-slate-800 leading-relaxed font-bold" dir="rtl">
+              {ayah.text}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

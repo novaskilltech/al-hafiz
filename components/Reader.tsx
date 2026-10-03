@@ -30,7 +30,7 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
   const [jumpInput, setJumpInput] = useState('');
   const [mode, setMode] = useState<AppMode>('read');
   const [memorizeTarget, setMemorizeTarget] = useState<Ayah | null>(null);
-  const [useImages, setUseImages] = useState(false);
+  const [useImages, setUseImages] = useState(true);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(JSON.parse(localStorage.getItem('alhafiz_bookmarks') || '[]'));
   const [fontSize, setFontSize] = useState<number>(savedSettings.fontSize || 36);
   const [masteredVerses, setMasteredVerses] = useState<string[]>([]);
@@ -278,12 +278,11 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-3 px-1">
-            <div className="relative inline-flex items-center cursor-pointer group">
-              <input type="checkbox" id="useImages" checked={useImages} onChange={(e) => setUseImages(e.target.checked)} className="sr-only peer" />
-              <div className="w-10 h-6 bg-[#eee8d5] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#b58900]"></div>
-              <label htmlFor="useImages" className={`text-[10px] font-black text-[#586e75] uppercase tracking-widest cursor-pointer group-hover:text-[#b58900] transition-colors ${isRtl ? 'mr-3' : 'ml-3'}`}>{t.calligraphyLabel}</label>
-            </div>
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-[#fdf6e3] rounded-2xl border border-[#eee8d5] w-fit">
+            <div className="w-2 h-2 rounded-full bg-[#859900] animate-pulse"></div>
+            <span className="text-[10px] font-black text-[#586e75] uppercase tracking-wider">
+              {lang === 'ar' ? 'مصحف المدينة (صور أصلية معتمدة)' : 'Mushaf de Médine (Images Certifiées)'}
+            </span>
           </div>
           <div className={`flex items-center justify-start md:justify-end gap-4 border-t md:border-t-0 border-[#eee8d5] pt-4 md:pt-0 ${isRtl ? 'md:border-r md:pr-6' : 'md:border-l md:pl-6'}`}>
             <span className="text-[9px] font-black text-[#93a1a1] uppercase tracking-[0.2em]">{t.fontSizeLabel}</span>

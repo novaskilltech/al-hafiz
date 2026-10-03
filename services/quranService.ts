@@ -15,6 +15,34 @@ export const fetchSurahs = async (): Promise<Surah[]> => {
  * Warsh utilise 'quran-warsh'
  */
 export const fetchSurahDetails = async (surahNumber: number, version: QuranVersion = 'Hafs'): Promise<Ayah[]> => {
+  try {
+    // 1. Source de référence officielle : Quran.com API v4 (Texte Othmani certifié du Complexe du Roi Fahd)
+    const quranComRes = await fetch(`https://api.quran.com/api/v4/quran/verses/uthmani?chapter_number=${surahNumber}`);
+    if (quranComRes.ok) {
+      const qData = await quranComRes.json();
+      if (qData.verses && qData.verses.length > 0) {
+        return qData.verses.map((v: any, idx: number) => {
+          const numberInSurah = parseInt(v.verse_key?.split(':')[1] || `${idx + 1}`, 10);
+          return {
+            number: v.id || idx + 1,
+            numberInSurah,
+            text: v.text_uthmani || '',
+            audio: '',
+            juz: 1,
+            manzil: 1,
+            page: 1,
+            ruku: 1,
+            hizbQuarter: 1,
+            sajda: false
+          };
+        });
+      }
+    }
+  } catch (e) {
+    console.warn("Quran.com API v4 indisponible, basculement vers fallback:", e);
+  }
+
+  // 2. Fallback classique : AlQuran Cloud
   const edition = version === 'Hafs' ? 'quran-uthmani' : 'quran-warsh';
   try {
     const response = await fetch(`${API_BASE}/surah/${surahNumber}/${edition}`);
@@ -23,7 +51,6 @@ export const fetchSurahDetails = async (surahNumber: number, version: QuranVersi
     return data.data.ayahs;
   } catch (err) {
     console.warn(`Fallback: Impossible de charger le texte JSON pour ${version}, utilisation du mode image.`);
-    // On retourne une structure vide avec juste les numéros pour forcer le fallback PNG dans l'UI
     const basicInfo = await fetch(`${API_BASE}/surah/${surahNumber}`);
     const basicData = await basicInfo.json();
     return basicData.data.ayahs.map((a: any) => ({ ...a, text: '' }));
