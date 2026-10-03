@@ -12,22 +12,22 @@ const SurahCard: React.FC<SurahCardProps> = ({ surah, onClick, bookmarkVerseNumb
   return (
     <button
       onClick={() => onClick(surah)}
-      className="group relative bg-white p-6 rounded-3xl border border-[#eee8d5] shadow-sm hover:shadow-xl hover:border-[#b58900]/30 transition-all text-right flex flex-row-reverse items-center gap-6 overflow-hidden"
+      className="group relative bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-[#eee8d5] shadow-sm hover:shadow-xl hover:border-[#b58900]/30 transition-all text-right flex flex-row-reverse items-center gap-3.5 sm:gap-6 overflow-hidden w-full active:scale-[0.99]"
     >
       {bookmarkVerseNumber && (
-        <span className="absolute top-3 left-3 bg-[#b58900]/10 text-[#b58900] text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-[#b58900]/20 z-10">
+        <span className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 bg-[#b58900]/10 text-[#b58900] text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border border-[#b58900]/20 z-10">
           V. {bookmarkVerseNumber}
         </span>
       )}
 
       {/* Numéro de la sourate avec un style ornemental */}
-      <div className="flex-shrink-0 w-14 h-14 flex items-center justify-center bg-[#fdf6e3] text-[#b58900] rounded-full font-black text-sm border border-[#eee8d5] group-hover:scale-110 transition-transform">
+      <div className="flex-shrink-0 w-11 h-11 sm:w-14 sm:h-14 flex items-center justify-center bg-[#fdf6e3] text-[#b58900] rounded-full font-black text-xs sm:text-sm border border-[#eee8d5] group-hover:scale-110 transition-transform">
         {surah.number}
       </div>
 
       <div className="flex-1 min-w-0 flex flex-col items-end">
         {/* Nom en Arabe - Element Principal */}
-        <h3 className="arabic-font text-3xl text-[#073642] group-hover:text-[#b58900] transition-colors mb-1">
+        <h3 className="arabic-font text-2xl sm:text-3xl text-[#073642] group-hover:text-[#b58900] transition-colors mb-0.5 sm:mb-1 truncate max-w-full">
           {surah.name}
         </h3>
         {/* Infos secondaires en petit */}

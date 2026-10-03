@@ -236,7 +236,7 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
   }
 
   return (
-    <div className={`max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-32`}>
+    <div className={`max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-36 sm:pb-32`}>
       {/* Controls Bar - Optimized for Arabic focus */}
       <div className="flex flex-col gap-4 bg-white p-6 sm:p-10 rounded-[2.5rem] border border-[#eee8d5] shadow-sm">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -318,27 +318,27 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="sticky top-[70px] z-40 -mx-4 px-4 py-3 bg-[#fdf6e3]/80 backdrop-blur-md flex items-center justify-between border-b border-[#eee8d5] sm:relative sm:top-0 sm:mx-0 sm:px-0 sm:bg-transparent sm:border-none">
-             <div className="flex gap-1 bg-white p-1 rounded-full border border-[#eee8d5] shadow-sm">
-              <button onClick={() => { setMode('read'); setMemorizeTarget(null); }} className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all rounded-full ${mode === 'read' ? 'bg-[#b58900] text-white shadow-md' : 'text-[#93a1a1] hover:text-[#586e75]'}`}>{t.readTab}</button>
+          <div className="sticky top-[60px] sm:top-[70px] z-40 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 sm:py-3 bg-[#fdf6e3]/90 backdrop-blur-md flex items-center justify-between border-b border-[#eee8d5] sm:relative sm:top-0 sm:mx-0 sm:px-0 sm:bg-transparent sm:border-none gap-2">
+             <div className="flex gap-1 bg-white p-1 rounded-full border border-[#eee8d5] shadow-sm shrink-0">
+              <button onClick={() => { setMode('read'); setMemorizeTarget(null); }} className={`px-3 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all rounded-full ${mode === 'read' ? 'bg-[#b58900] text-white shadow-md' : 'text-[#93a1a1] hover:text-[#586e75]'}`}>{t.readTab}</button>
               <button onClick={() => {
                 setMode('memorize');
                 if (activeAyah !== null) {
                   const target = ayahs.find(a => a.numberInSurah === activeAyah);
                   if (target) setMemorizeTarget(target);
                 }
-              }} className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all rounded-full ${mode === 'memorize' ? 'bg-[#268bd2] text-white shadow-md' : 'text-[#93a1a1] hover:text-[#586e75]'}`}>{t.examTab}</button>
+              }} className={`px-3 sm:px-6 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all rounded-full ${mode === 'memorize' ? 'bg-[#268bd2] text-white shadow-md' : 'text-[#93a1a1] hover:text-[#586e75]'}`}>{t.examTab}</button>
              </div>
              {activeAyah !== null && mode === 'read' && (
-                <div className="flex items-center gap-2">
-                  <button onClick={() => navigateAyah(isRtl ? 'next' : 'prev')} disabled={isRtl ? activeAyah >= ayahs.length : activeAyah <= 1} className="p-2.5 bg-white border border-[#eee8d5] text-[#b58900] rounded-full disabled:opacity-30 active:scale-90 shadow-sm">
+                <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                  <button onClick={() => navigateAyah(isRtl ? 'next' : 'prev')} disabled={isRtl ? activeAyah >= ayahs.length : activeAyah <= 1} className="p-1.5 sm:p-2.5 bg-white border border-[#eee8d5] text-[#b58900] rounded-full disabled:opacity-30 active:scale-90 shadow-sm" aria-label="Précédent">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
                   </button>
-                  <span className="text-[10px] font-black text-[#b58900] bg-white border border-[#eee8d5] rounded-full px-4 py-2 shadow-sm min-w-[85px] text-center tracking-widest">{t.ayahWord} {activeAyah}</span>
-                  <button onClick={() => navigateAyah(isRtl ? 'prev' : 'next')} disabled={isRtl ? activeAyah <= 1 : activeAyah >= ayahs.length} className="p-2.5 bg-white border border-[#eee8d5] text-[#b58900] rounded-full disabled:opacity-30 active:scale-90 shadow-sm">
+                  <span className="text-[9px] sm:text-[10px] font-black text-[#b58900] bg-white border border-[#eee8d5] rounded-full px-2.5 sm:px-4 py-1.5 sm:py-2 shadow-sm min-w-[65px] sm:min-w-[85px] text-center tracking-wider sm:tracking-widest">{t.ayahWord} {activeAyah}</span>
+                  <button onClick={() => navigateAyah(isRtl ? 'prev' : 'next')} disabled={isRtl ? activeAyah <= 1 : activeAyah >= ayahs.length} className="p-1.5 sm:p-2.5 bg-white border border-[#eee8d5] text-[#b58900] rounded-full disabled:opacity-30 active:scale-90 shadow-sm" aria-label="Suivant">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                   </button>
-                  <button onClick={() => setShowJumpModal(true)} className="p-2.5 bg-[#fdf6e3] border border-[#eee8d5] text-[#b58900] hover:bg-[#eee8d5] rounded-full transition-all shadow-sm active:scale-90" title="Aller au verset">
+                  <button onClick={() => setShowJumpModal(true)} className="p-1.5 sm:p-2.5 bg-[#fdf6e3] border border-[#eee8d5] text-[#b58900] hover:bg-[#eee8d5] rounded-full transition-all shadow-sm active:scale-90" title="Aller au verset" aria-label="Aller au verset">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -357,7 +357,7 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
                 <div 
                   key={ayah.number}
                   ref={el => { ayahRefs.current[ayah.numberInSurah] = el; }}
-                  className={`group rounded-[2rem] p-6 sm:p-10 border transition-all flex flex-col gap-6 
+                  className={`group rounded-2xl sm:rounded-[2rem] p-4 sm:p-8 sm:p-10 border transition-all flex flex-col gap-4 sm:gap-6 
                     ${isActive ? 'ring-4 ring-[#b58900]/10 border-[#b58900] shadow-xl' : 'hover:border-[#b58900]/30 shadow-sm'} 
                     ${isMastered ? 'bg-[#859900]/5 border-[#859900]/30' : 'bg-white border-[#eee8d5]'}
                     ${mode === 'memorize' ? 'cursor-pointer active:scale-[0.99]' : ''}`}
@@ -370,26 +370,26 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
                     }
                   }}
                 >
-                  <div className="flex items-center justify-between border-b border-[#fdf6e3] pb-6">
-                    <div className="flex items-center gap-4">
-                      <span className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#fdf6e3] text-[#b58900] font-black text-xs border border-[#eee8d5]">{ayah.numberInSurah}</span>
+                  <div className="flex items-center justify-between border-b border-[#fdf6e3] pb-4 sm:pb-6">
+                    <div className="flex items-center gap-2.5 sm:gap-4">
+                      <span className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-[#fdf6e3] text-[#b58900] font-black text-xs border border-[#eee8d5]">{ayah.numberInSurah}</span>
                       {isMastered && (
-                        <span className="text-[9px] font-black text-[#859900] uppercase tracking-[0.2em] bg-[#859900]/10 px-3 py-1 rounded-full flex items-center gap-1">
+                        <span className="text-[9px] font-black text-[#859900] uppercase tracking-[0.2em] bg-[#859900]/10 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1">
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                           {t.memorized}
                         </span>
                       )}
                       {mode === 'memorize' && !isMastered && (
-                        <span className="text-[9px] font-black text-[#268bd2] uppercase tracking-[0.2em] animate-pulse bg-[#268bd2]/5 px-3 py-1 rounded-full">{t.examAvailable}</span>
+                        <span className="text-[9px] font-black text-[#268bd2] uppercase tracking-[0.2em] animate-pulse bg-[#268bd2]/5 px-2.5 sm:px-3 py-1 rounded-full">{t.examAvailable}</span>
                       )}
                     </div>
                     {mode === 'read' && (
-                      <div className="flex gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); toggleBookmark(ayah); }} className={`p-3 rounded-full transition-all active:scale-90 ${isBookmarked ? 'bg-amber-100 text-[#b58900]' : 'bg-[#fdf6e3] text-[#93a1a1] hover:text-[#b58900]'}`} title={t.favorites}>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
+                      <div className="flex gap-1.5 sm:gap-2">
+                        <button onClick={(e) => { e.stopPropagation(); toggleBookmark(ayah); }} className={`p-2 sm:p-3 rounded-full transition-all active:scale-90 ${isBookmarked ? 'bg-amber-100 text-[#b58900]' : 'bg-[#fdf6e3] text-[#93a1a1] hover:text-[#b58900]'}`} title={t.favorites} aria-label={t.favorites}>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
                         </button>
-                        <button onClick={(e) => { e.stopPropagation(); handlePlayAyah(ayah.numberInSurah); }} className={`p-3 rounded-full transition-all shadow-md active:scale-90 ${isActive ? 'bg-[#b58900] text-white' : 'bg-[#073642] text-white hover:bg-[#002b36]'}`}>
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
+                        <button onClick={(e) => { e.stopPropagation(); handlePlayAyah(ayah.numberInSurah); }} className={`p-2 sm:p-3 rounded-full transition-all shadow-md active:scale-90 ${isActive ? 'bg-[#b58900] text-white' : 'bg-[#073642] text-white hover:bg-[#002b36]'}`} aria-label="Écouter">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
                         </button>
                       </div>
                     )}
@@ -398,17 +398,17 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
                     <AyahDisplay ayah={ayah} surahNumber={surah.number} useImageOnly={useImages} fontSize={fontSize} />
                   </div>
                   {isActive && mode === 'read' && (
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-[#fdf6e3] pt-6 mt-4 gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-t border-[#fdf6e3] pt-4 sm:pt-6 mt-2 sm:mt-4 gap-2.5 sm:gap-3">
                       <span className="text-[10px] font-black text-[#93a1a1] uppercase tracking-[0.2em]">{lang === 'ar' ? 'التحكم السريع' : 'Actions rapides'}</span>
-                      <div className="flex gap-2.5 flex-wrap">
+                      <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2 sm:gap-2.5 w-full sm:w-auto">
                         <button 
                           onClick={(e) => { e.stopPropagation(); handlePlayAyah(ayah.numberInSurah); }} 
-                          className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 active:scale-95 shadow-sm ${isPlaying ? 'bg-[#b58900] text-white' : 'bg-[#073642] text-white'}`}
+                          className={`w-full sm:w-auto px-2 sm:px-5 py-2.5 rounded-xl sm:rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all flex items-center justify-center gap-1 sm:gap-1.5 active:scale-95 shadow-sm ${isPlaying ? 'bg-[#b58900] text-white' : 'bg-[#073642] text-white'}`}
                         >
                           {isPlaying ? (
-                            <><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg> Pause</>
+                            <><svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg> Pause</>
                           ) : (
-                            <><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg> Écouter</>
+                            <><svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg> Écouter</>
                           )}
                         </button>
                         
@@ -418,22 +418,22 @@ const Reader: React.FC<ReaderProps> = ({ surah, lang = 'fr' }) => {
                             setMode('memorize'); 
                             setMemorizeTarget(ayah); 
                           }} 
-                          className="px-5 py-2.5 bg-[#268bd2] hover:bg-[#2aa198] text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-1.5 shadow-sm"
+                          className="w-full sm:w-auto px-2 sm:px-5 py-2.5 bg-[#268bd2] hover:bg-[#2aa198] text-white rounded-xl sm:rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
-                          {lang === 'ar' ? 'سجّل وتسميع' : 'S\'évaluer'}
+                          {lang === 'ar' ? 'سجّل' : 'S\'évaluer'}
                         </button>
                         
                         <button 
                           onClick={(e) => { e.stopPropagation(); toggleBookmark(ayah); }} 
-                          className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 active:scale-95 shadow-sm ${isBookmarked ? 'bg-amber-100 text-[#b58900] border border-[#b58900]/30' : 'bg-white text-[#93a1a1] border border-[#eee8d5] hover:text-[#b58900]'}`}
+                          className={`w-full sm:w-auto px-2 sm:px-5 py-2.5 rounded-xl sm:rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider sm:tracking-widest transition-all flex items-center justify-center gap-1 sm:gap-1.5 active:scale-95 shadow-sm ${isBookmarked ? 'bg-amber-100 text-[#b58900] border border-[#b58900]/30' : 'bg-white text-[#93a1a1] border border-[#eee8d5] hover:text-[#b58900]'}`}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                           </svg>
-                          {isBookmarked ? (lang === 'ar' ? 'مسجل' : 'Enregistré') : (lang === 'ar' ? 'حفظ العلامة' : 'Favoris')}
+                          {isBookmarked ? (lang === 'ar' ? 'مسجل' : 'Sauvé') : (lang === 'ar' ? 'حفظ' : 'Favoris')}
                         </button>
                       </div>
                     </div>
